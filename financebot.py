@@ -3,18 +3,21 @@ from openai import OpenAI
 import feedparser
 import requests
 from newspaper import Article
-from datetime import datetime
+
 import time
 import pytz
 import os
 
+from datetime import date, datetime
+import math
+from wechatpy import WeChatClient
+from wechatpy.client.api import WeChatMessage, WeChatTemplate
+import requests
+import random
+
+
 # OpenAI API Key
-openai_api_key = os.getenv("OPENAI_API_KEY")
-# 从环境变量获取 Server酱 SendKeys
-server_chan_keys_env = os.getenv("SERVER_CHAN_KEYS")
-if not server_chan_keys_env:
-    raise ValueError("环境变量 SERVER_CHAN_KEYS 未设置，请在Github Actions中设置此变量！")
-server_chan_keys = server_chan_keys_env.split(",")
+openai_api_key = os.getenv("sk-59f54a2d98c64fd0b568d2190613f706")
 
 openai_client = OpenAI(api_key=openai_api_key, base_url="https://api.deepseek.com/v1")
 
@@ -144,14 +147,11 @@ def summarize(text):
 
 # 发送微信推送
 def send_to_wechat(title, content):
-    for key in server_chan_keys:
-        url = f"https://sctapi.ftqq.com/{key}.send"
-        data = {"title": title, "desp": content}
-        response = requests.post(url, data=data, timeout=10)
-        if response.ok:
-            print(f"✅ 推送成功: {key}")
-        else:
-            print(f"❌ 推送失败: {key}, 响应：{response.text}")
+    client = WeChatClient(app_id, app_secret)
+    wm = WeChatMessage(client)
+    data = {"title": title, "desp": content}
+    res = wm.send_template(user_id, template_id, data)
+    print(res)
 
 
 if __name__ == "__main__":
